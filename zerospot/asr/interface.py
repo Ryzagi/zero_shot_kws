@@ -11,12 +11,12 @@ from zerospot.asr.data_types import ASRTranscription
 
 
 class ASRModelInterface:
-    """A class representing an interface to an automatic speech recognition (ASR) model.
+    """A class representing an interface to an automatic speech recognition (ASR) models.
 
     Attributes:
-        _asr_model_name: The name of the ASR model to use.
+        _asr_model_name: The name of the ASR models to use.
         _timestamp_to_sec_ratio: The ratio used to convert timestamps to seconds.
-        _model: The ASR model.
+        _model: The ASR models.
     """
     _asr_model_name = "jonatasgrosman/wav2vec2-large-xlsr-53-english"
     _timestamp_to_sec_ratio = 0.001
@@ -25,7 +25,7 @@ class ASRModelInterface:
         """Create a new `ASRModelInterface`.
 
         Args:
-            device: The device to use for running the ASR model.
+            device: The device to use for running the ASR models.
         """
         self._model = SpeechRecognitionModel(self._asr_model_name, device=device)
 
