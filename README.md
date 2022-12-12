@@ -1,10 +1,18 @@
-# zero_shot_kws
+* zero_shot_kws
 Keyword Spotting (KWS) is an essential component of voice-assist technologies, where the user
 speaks a predefined keyword to wake up a system
 before speaking a complete command or query to
 the device. The project aims to create a zero-shot
 keyword spotter and compare it with a non-zeroshot (static) keyword spotter trained to recognize
 a specific set of keywords.
+* Zero-shot learning. Analogies can be drawn between KWS
+with unseen words and zero-shot learning for detecting
+new classes, such as words or phrases. KWS with unseen
+words is essentially a zero-shot learning problem, where
+attributes (letters) are shared between classes (words) so
+that the knowledge learned from seen classes is transfered
+to unseen ones
+
 ![assfasfsa drawio](https://user-images.githubusercontent.com/56489328/207005539-d2939f30-63fa-423a-abeb-e4cfcb306bbe.png)
 
 # The result model is suggested to be achieved by the following steps:
