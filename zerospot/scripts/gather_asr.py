@@ -13,7 +13,9 @@ def parse_args() -> argparse.Namespace:
     Parse arguments for exporting.
     Returns: argparse.Namespace.
     """
-    arguments_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    arguments_parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     arguments_parser.add_argument(
         "-src",
         "--src_dir",
@@ -48,7 +50,9 @@ def parse_args() -> argparse.Namespace:
     return arguments_parser.parse_args()
 
 
-def main(src_dir: Path, device: str, suffix: str, force_recompute: bool) -> None:
+def main(
+    src_dir: Path, device: str, suffix: str, force_recompute: bool
+) -> None:
     # Setup logger
     logging.basicConfig(level=logging.getLevelName("INFO"))
     logger = logging.getLogger(Path(__file__).name)
@@ -57,7 +61,11 @@ def main(src_dir: Path, device: str, suffix: str, force_recompute: bool) -> None
     audios = list(src_dir.rglob(f"*{suffix}"))
 
     if not force_recompute:
-        audios = [audio_path for audio_path in audios if not audio_path.with_suffix(ASR_FILE_SUFFIX).exists()]
+        audios = [
+            audio_path
+            for audio_path in audios
+            if not audio_path.with_suffix(ASR_FILE_SUFFIX).exists()
+        ]
 
     logger.info(f"N. of audios to compute transcriptions: {len(audios)}")
 
@@ -67,7 +75,9 @@ def main(src_dir: Path, device: str, suffix: str, force_recompute: bool) -> None
     logger.info(f"ASR model inference...")
     transcriptions = interface.get_transcription(audios)
 
-    for transcription, audio_path in tqdm(zip(transcriptions, audios), desc="Saving transcription files..."):
+    for transcription, audio_path in tqdm(
+        zip(transcriptions, audios), desc="Saving transcription files..."
+    ):
         save_path = audio_path.with_suffix(ASR_FILE_SUFFIX)
         transcription.to_json(save_path)
 

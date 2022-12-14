@@ -1,8 +1,8 @@
-import torch
+from pathlib import Path
+
 import librosa
 import pandas as pd
-
-from pathlib import Path
+import torch
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
 
@@ -10,7 +10,7 @@ from torch.utils.data import Dataset
 class WavDataClass(Dataset):
     def __init__(self, path_to_data):
         super().__init__()
-        self.data = path_to_data
+        self.data = pd.read_csv(path_to_data)
 
     def __getitem__(self, x):
         idx, label, wav_path = self.data.iloc[x]
@@ -19,7 +19,9 @@ class WavDataClass(Dataset):
         audio_data, sample_rate = librosa.load(wav_path, sr=16000)
 
         # Create a melspectrogram  with the desired parameters
-        mel_spectrogram = librosa.feature.melspectrogram(y=audio_data, sr=16000, n_mels=40)
+        mel_spectrogram = librosa.feature.melspectrogram(
+            y=audio_data, sr=16000, n_mels=40
+        )
 
         # Convert a melspectrogram  with the desired parameters into torch.Tensor
         mel_spectrogram = torch.Tensor(mel_spectrogram)
@@ -69,7 +71,7 @@ def create_datasets(path, test_size):
     data = []
 
     # get a list of all the .wav files in the given path
-    dataset_from_path = Path(path).rglob('*.wav')
+    dataset_from_path = Path(path).rglob("*.wav")
 
     # loop through each .wav file in the list
     for wav in dataset_from_path:
@@ -81,17 +83,19 @@ def create_datasets(path, test_size):
         data.append([0, label, wav])
 
     # create a pandas DataFrame from the data list
-    dataset = pd.DataFrame(data, columns=['indexes', 'labels', 'wav_path'])
+    dataset = pd.DataFrame(data, columns=["indexes", "labels", "wav_path"])
 
     # create a dictionary mapping the labels to index values
     mapped_labels = {v: k for k, v in enumerate(set(dataset.labels))}
 
     # use the dictionary to convert the labels to index values
-    dataset['indexes'] = dataset.labels.apply(lambda x: mapped_labels[x])
+    dataset["indexes"] = dataset.labels.apply(lambda x: mapped_labels[x])
 
     # split the dataset into training and testing sets
-    train, test = train_test_split(dataset, test_size=test_size, random_state=42)
+    train, test = train_test_split(
+        dataset, test_size=test_size, random_state=42
+    )
 
     # save the training and testing sets as csv files
-    train.to_csv('train.csv', index=False)
-    test.to_csv('test.csv', index=False)
+    train.to_csv("train.csv", index=False)
+    test.to_csv("test.csv", index=False)

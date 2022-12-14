@@ -1,24 +1,50 @@
+from typing import Optional
+
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 
 DROPOUT = 0.1
 
 
 class NormalBlock(nn.Module):
-    def __init__(self, n_chan: int, *, dilation: int = 1, dropout: float = DROPOUT, use_subspectral: bool = True):
+    def __init__(
+        self,
+        n_chan: int,
+        *,
+        dilation: int = 1,
+        dropout: float = DROPOUT,
+        use_subspectral: bool = True
+    ):
         super().__init__()
-        norm_layer = SubSpectralNorm(n_chan, 5) if use_subspectral else nn.BatchNorm2d(n_chan)
+        norm_layer = (
+            SubSpectralNorm(n_chan, 5)
+            if use_subspectral
+            else nn.BatchNorm2d(n_chan)
+        )
         self.f2 = nn.Sequential(
-            nn.Conv2d(n_chan, n_chan, kernel_size=(3, 1), padding="same", groups=n_chan),
+            nn.Conv2d(
+                n_chan,
+                n_chan,
+                kernel_size=(3, 1),
+                padding="same",
+                groups=n_chan,
+            ),
             norm_layer,
         )
         self.f1 = nn.Sequential(
-            nn.Conv2d(n_chan, n_chan, kernel_size=(1, 3), padding="same", groups=n_chan, dilation=(1, dilation)),
+            nn.Conv2d(
+                n_chan,
+                n_chan,
+                kernel_size=(1, 3),
+                padding="same",
+                groups=n_chan,
+                dilation=(1, dilation),
+            ),
             nn.BatchNorm2d(n_chan),
             nn.SiLU(),
             nn.Conv2d(n_chan, n_chan, kernel_size=1),
-            nn.Dropout2d(dropout)
+            nn.Dropout2d(dropout),
         )
         self.activation = nn.ReLU()
 
@@ -34,17 +60,41 @@ class NormalBlock(nn.Module):
 
 
 class TransitionBlock(nn.Module):
-    def __init__(self, in_chan: int, out_chan: int, *, dilation: int = 1, stride: int = 1, dropout: float = DROPOUT,
-                 use_subspectral: bool = True):
+    def __init__(
+        self,
+        in_chan: int,
+        out_chan: int,
+        *,
+        dilation: int = 1,
+        stride: int = 1,
+        dropout: float = DROPOUT,
+        use_subspectral: bool = True
+    ):
         super().__init__()
 
         if stride == 1:
-            conv = nn.Conv2d(out_chan, out_chan, kernel_size=(3, 1), groups=out_chan, padding="same")
+            conv = nn.Conv2d(
+                out_chan,
+                out_chan,
+                kernel_size=(3, 1),
+                groups=out_chan,
+                padding="same",
+            )
         else:
-            conv = nn.Conv2d(out_chan, out_chan, kernel_size=(3, 1), stride=(stride, 1), groups=out_chan,
-                             padding=(1, 0))
+            conv = nn.Conv2d(
+                out_chan,
+                out_chan,
+                kernel_size=(3, 1),
+                stride=(stride, 1),
+                groups=out_chan,
+                padding=(1, 0),
+            )
 
-        norm_layer = SubSpectralNorm(out_chan, 5) if use_subspectral else nn.BatchNorm2d(out_chan)
+        norm_layer = (
+            SubSpectralNorm(out_chan, 5)
+            if use_subspectral
+            else nn.BatchNorm2d(out_chan)
+        )
         self.f2 = nn.Sequential(
             nn.Conv2d(in_chan, out_chan, kernel_size=(1, 1)),
             nn.BatchNorm2d(out_chan),
@@ -54,11 +104,18 @@ class TransitionBlock(nn.Module):
         )
 
         self.f1 = nn.Sequential(
-            nn.Conv2d(out_chan, out_chan, kernel_size=(1, 3), padding="same", groups=out_chan, dilation=(1, dilation)),
+            nn.Conv2d(
+                out_chan,
+                out_chan,
+                kernel_size=(1, 3),
+                padding="same",
+                groups=out_chan,
+                dilation=(1, dilation),
+            ),
             nn.BatchNorm2d(out_chan),
             nn.SiLU(),
             nn.Conv2d(out_chan, out_chan, kernel_size=1),
-            nn.Dropout2d(dropout)
+            nn.Dropout2d(dropout),
         )
 
         self.activation = nn.ReLU()
@@ -74,33 +131,106 @@ class TransitionBlock(nn.Module):
 
 
 class BcResNetModel(nn.Module):
-    def __init__(self, n_class: int = 35, *, scale: int = 1, dropout: float = DROPOUT, use_subspectral: bool = True):
+    def __init__(
+        self,
+        n_class: Optional[int] = 35,
+        *,
+        scale: int = 1,
+        dropout: float = DROPOUT,
+        use_subspectral: bool = True
+    ):
         super().__init__()
 
-        self.input_conv = nn.Conv2d(1, 16 * scale, kernel_size=(5, 5), stride=(2, 1), padding=2)
+        self.input_conv = nn.Conv2d(
+            1, 16 * scale, kernel_size=(5, 5), stride=(2, 1), padding=2
+        )
 
-        self.t1 = TransitionBlock(16 * scale, 8 * scale, dropout=dropout, use_subspectral=use_subspectral)
-        self.n11 = NormalBlock(8 * scale, dropout=dropout, use_subspectral=use_subspectral)
+        self.t1 = TransitionBlock(
+            16 * scale,
+            8 * scale,
+            dropout=dropout,
+            use_subspectral=use_subspectral,
+        )
+        self.n11 = NormalBlock(
+            8 * scale, dropout=dropout, use_subspectral=use_subspectral
+        )
 
-        self.t2 = TransitionBlock(8 * scale, 12 * scale, dilation=2, stride=2, dropout=dropout,
-                                  use_subspectral=use_subspectral)
-        self.n21 = NormalBlock(12 * scale, dilation=2, dropout=dropout, use_subspectral=use_subspectral)
+        self.t2 = TransitionBlock(
+            8 * scale,
+            12 * scale,
+            dilation=2,
+            stride=2,
+            dropout=dropout,
+            use_subspectral=use_subspectral,
+        )
+        self.n21 = NormalBlock(
+            12 * scale,
+            dilation=2,
+            dropout=dropout,
+            use_subspectral=use_subspectral,
+        )
 
-        self.t3 = TransitionBlock(12 * scale, 16 * scale, dilation=4, stride=2, dropout=dropout,
-                                  use_subspectral=use_subspectral)
-        self.n31 = NormalBlock(16 * scale, dilation=4, dropout=dropout, use_subspectral=use_subspectral)
-        self.n32 = NormalBlock(16 * scale, dilation=4, dropout=dropout, use_subspectral=use_subspectral)
-        self.n33 = NormalBlock(16 * scale, dilation=4, dropout=dropout, use_subspectral=use_subspectral)
+        self.t3 = TransitionBlock(
+            12 * scale,
+            16 * scale,
+            dilation=4,
+            stride=2,
+            dropout=dropout,
+            use_subspectral=use_subspectral,
+        )
+        self.n31 = NormalBlock(
+            16 * scale,
+            dilation=4,
+            dropout=dropout,
+            use_subspectral=use_subspectral,
+        )
+        self.n32 = NormalBlock(
+            16 * scale,
+            dilation=4,
+            dropout=dropout,
+            use_subspectral=use_subspectral,
+        )
+        self.n33 = NormalBlock(
+            16 * scale,
+            dilation=4,
+            dropout=dropout,
+            use_subspectral=use_subspectral,
+        )
 
-        self.t4 = TransitionBlock(16 * scale, 20 * scale, dilation=8, dropout=dropout, use_subspectral=use_subspectral)
-        self.n41 = NormalBlock(20 * scale, dilation=8, dropout=dropout, use_subspectral=use_subspectral)
-        self.n42 = NormalBlock(20 * scale, dilation=8, dropout=dropout, use_subspectral=use_subspectral)
-        self.n43 = NormalBlock(20 * scale, dilation=8, dropout=dropout, use_subspectral=use_subspectral)
+        self.t4 = TransitionBlock(
+            16 * scale,
+            20 * scale,
+            dilation=8,
+            dropout=dropout,
+            use_subspectral=use_subspectral,
+        )
+        self.n41 = NormalBlock(
+            20 * scale,
+            dilation=8,
+            dropout=dropout,
+            use_subspectral=use_subspectral,
+        )
+        self.n42 = NormalBlock(
+            20 * scale,
+            dilation=8,
+            dropout=dropout,
+            use_subspectral=use_subspectral,
+        )
+        self.n43 = NormalBlock(
+            20 * scale,
+            dilation=8,
+            dropout=dropout,
+            use_subspectral=use_subspectral,
+        )
 
-        self.dw_conv = nn.Conv2d(20 * scale, 20 * scale, kernel_size=(5, 5), groups=20)
+        self.dw_conv = nn.Conv2d(
+            20 * scale, 20 * scale, kernel_size=(5, 5), groups=20
+        )
         self.onexone_conv = nn.Conv2d(20 * scale, 32 * scale, kernel_size=1)
+        self.n_class = n_class
+        if n_class is not None:
+            self.head_conv = nn.Conv2d(32 * scale, n_class, kernel_size=1)
 
-        self.head_conv = nn.Conv2d(32 * scale, n_class, kernel_size=1)
 
     def forward(self, x: torch.Tensor):
         x = self.input_conv(x)
@@ -124,11 +254,13 @@ class BcResNetModel(nn.Module):
         x = self.onexone_conv(x)
 
         x = torch.mean(x, dim=3, keepdim=True)
-        x = self.head_conv(x)
 
-        x = x.squeeze()
+        if self.n_class is not None:
+            x = self.head_conv(x)
+            x = x.squeeze()
+            return F.log_softmax(x, dim=-1)
 
-        return F.log_softmax(x, dim=-1)
+        return x.squeeze()
 
 
 class SubSpectralNorm(nn.Module):

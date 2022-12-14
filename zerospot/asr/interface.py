@@ -18,6 +18,7 @@ class ASRModelInterface:
         _timestamp_to_sec_ratio: The ratio used to convert timestamps to seconds.
         _model: The ASR models.
     """
+
     _asr_model_name = "jonatasgrosman/wav2vec2-large-xlsr-53-english"
     _timestamp_to_sec_ratio = 0.001
 
@@ -27,9 +28,13 @@ class ASRModelInterface:
         Args:
             device: The device to use for running the ASR models.
         """
-        self._model = SpeechRecognitionModel(self._asr_model_name, device=device)
+        self._model = SpeechRecognitionModel(
+            self._asr_model_name, device=device
+        )
 
-    def get_transcription(self, audio_paths: List[Path]) -> List[ASRTranscription]:
+    def get_transcription(
+        self, audio_paths: List[Path]
+    ) -> List[ASRTranscription]:
         """Transcribe the audio at the specified paths.
 
         Args:
@@ -38,15 +43,23 @@ class ASRModelInterface:
         Returns:
             A list of transcriptions for the audio.
         """
-        raw_transcriptions = self._model.transcribe([str(i) for i in audio_paths])
+        raw_transcriptions = self._model.transcribe(
+            [str(i) for i in audio_paths]
+        )
         transcriptions = []
         for transcription in raw_transcriptions:
             text = transcription[TRANSCRIPTION_FIELD]
 
             timestamps = []
             for i in range(len(text)):
-                start, end = transcription[START_TIMESTAMPS_FIELD][i], transcription[END_TIMESTAMPS_FIELD][i]
-                start, end = start * self._timestamp_to_sec_ratio, end * self._timestamp_to_sec_ratio
+                start, end = (
+                    transcription[START_TIMESTAMPS_FIELD][i],
+                    transcription[END_TIMESTAMPS_FIELD][i],
+                )
+                start, end = (
+                    start * self._timestamp_to_sec_ratio,
+                    end * self._timestamp_to_sec_ratio,
+                )
                 timestamps.append((start, end))
 
             transcription = ASRTranscription(text=text, timestamps=timestamps)
