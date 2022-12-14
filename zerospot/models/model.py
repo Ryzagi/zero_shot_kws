@@ -231,7 +231,6 @@ class BcResNetModel(nn.Module):
         if n_class is not None:
             self.head_conv = nn.Conv2d(32 * scale, n_class, kernel_size=1)
 
-
     def forward(self, x: torch.Tensor):
         x = self.input_conv(x)
         x = self.t1(x)
