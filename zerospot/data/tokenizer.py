@@ -4,7 +4,7 @@ import json
 
 class Tokenizer:
     def __init__(self):
-        self.tokens = json.loads((Path(__file__) / 'tokens.json').read_text())
+        self.tokens = json.loads((Path(__file__).parent / 'tokens.json').read_text())
         self.pad_token_id = 0
 
     def __call__(self, word_list):
@@ -12,15 +12,17 @@ class Tokenizer:
         tokens_list_ids = []
         tokens_list_lentghts = []
 
-        max_length = max([len(word) for word in word_list])
+        max_length = max([len(str(word)) for word in word_list])
 
         for word in word_list:
             tokens_ids = []
             tokens_lentghts = []
-
-            for char in word:
-                token_id = self.tokens[char]
-                tokens_ids.append(token_id)
+            try:
+                for char in word:
+                    token_id = self.tokens[char]
+                    tokens_ids.append(token_id)
+            except:
+                print(char)
 
             token_length = len(tokens_ids)
 
