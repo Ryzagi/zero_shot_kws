@@ -31,7 +31,7 @@ def main():
     )
 
     checkpoint_callback = ModelCheckpoint(dirpath=MODEL_PATH,
-                                          filename='BcResNetModel_{epoch}-{val_loss:.2f}',
+                                          filename='ZeroShotModel_{epoch}-{val_loss:.2f}',
                                           monitor='val_loss', mode='min', save_top_k=3)
 
     logger = TensorBoardLogger(MODEL_PATH, name="logs")
@@ -49,4 +49,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    q3
