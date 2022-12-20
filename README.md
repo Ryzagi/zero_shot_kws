@@ -1,3 +1,10 @@
+For install all packages run:
+```
+git clone https://github.com/Ryzagi/zero_shot_kws
+cd deepfish
+pip install .
+```
+
 # Zero-shot KWS
 * Keyword Spotting (KWS) is an essential component of voice-assist technologies, where the user
 speaks a predefined keyword to wake up a system
