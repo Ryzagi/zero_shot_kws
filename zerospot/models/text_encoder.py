@@ -1,6 +1,6 @@
 from torch import nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-import torch
+
 
 class TextEncoder(nn.Module):
     def __init__(self, num_embeddings, hidden_dim, num_layers):

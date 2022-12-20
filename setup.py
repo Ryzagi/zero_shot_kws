@@ -40,5 +40,5 @@ setup(
     version="0.0.1",
     description="TODO",
     packages=find_packages(exclude=["tests", "tests.*"]),
-    # install_requires=_load_requirements(THIS_DIR),
+    install_requires=_load_requirements(THIS_DIR),
 )
