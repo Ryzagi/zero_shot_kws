@@ -2,7 +2,7 @@
 For install all packages run:
 ```
 git clone https://github.com/Ryzagi/zero_shot_kws
-cd deepfish
+cd zero_shot_kws
 pip install .
 ```
 
